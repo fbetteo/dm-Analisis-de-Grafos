@@ -1,34 +1,49 @@
+#### EL INPUT ES UN GRAFO EN FORMATO DE LISTA
+#### DONDE CADA OBJETO ES UN VECTOR CON LOS VECINOS (numericos)
+#### EL ORDEN SECUENCIAL DE LOS OBJETOS CORRESPONDE A SU "NOMBRE" (de 1 a N)
+#### "camino_euleriano" es la funcion final. Al final del script esta ejecutado para los dos ejemplos generados
+#### justo debajo.
+
+#### SE PUEDE GENERAR A MANO. POR EJ:
+simple_graph <- list( c(2,3), c(1,3), c(1,2))
+
+#### O DESDE IGRAPH Y LLEVANDOLO AL FORMATO NECESARIO ( SOLO PARA GENERAR GRAFOS RAPIDAMENTE)
+
 library(igraph)
 library(tidyverse)
-
-
-# Genero Grafo
-raw <- sample_k_regular(10, 4, directed = FALSE, multiple = TRUE) 
+# Genero Grafo ( no me genera mas de 10 nodos)
+raw <- sample_k_regular(no.of.nodes = 10, k = 4, directed = FALSE, multiple = TRUE) 
 raw <-  igraph::simplify(raw, remove.multiple = FALSE, remove.loops = TRUE)
-
-
-igraph::plot.igraph(raw)
-
 # Lo convierto en lista de vecinos , todo formato numerico
 raw2 <- map(.x = raw, .f = function(x) pluck(x,1, as.vector) )
-
+igraph::plot.igraph(raw)
 ####
 
-simple_graph <- list( c(2,3), c(1,3), c(1,2))
+
+
+### INICIO DE FUNCIONES ###
 
 # Funcion que determina si un grafo tiene todos sus nodos de grado par
 is.pair <- function(adjlist){
 pair <- map_dbl(adjlist, .f = function(x) length(x) %% 2) %>%
   sum()
 out <-  pair == 0
-print(out)
+#print(out)
 }
 
-is.pair(raw2)
+###
+
+# Lista de nodos con conexiones
+available.nodes <- function(adjlist) {
+  avai <- map_df(adjlist, .f = function(x) data.frame(connections = length(x) ), .id= "nodeid") %>%
+    dplyr::filter(., connections > 0) %>%
+    select(nodeid)
+  
+}
+
 
 ###
-nodo_inicial <- 1
-adjlist <- simple_graph
+
 # Determina si un grafo es conexo. El input es el grafo y el nodo desde el que empiezo
 is.conex <- function(adjlist, nodo_inicial){
   alcanzados <-  nodo_inicial
@@ -49,35 +64,18 @@ is.conex <- function(adjlist, nodo_inicial){
   return(out)
 }
 
-is.conex(raw2,1)
-aa <- available.nodes(raw2) %>% select(nodeid) %>%
-  nrow()
-###
-
-# Lista de nodos con conexiones
-available.nodes <- function(adjlist) {
-  avai <- map_df(adjlist, .f = function(x) data.frame(connections = length(x) ), .id= "nodeid") %>%
-    dplyr::filter(., connections > 0) %>%
-    select(nodeid)
-
-}
-
-available.nodes(adjlist)
 
 ###
-
-
-
 
 camino_euleriano <- function(adjlist){
   
-  # Chequeo (esta bien implementado?)
+  # Chequeo 
   if (is.pair(adjlist) == TRUE & is.conex(adjlist,1) == TRUE){
   
 for (i in 1:1000){
   adjlist_temp <- adjlist
   posible <-  TRUE
-  print(i)
+  #print(i)
   # el inicial  
 pisados <- sample(length(adjlist_temp),1)
   while (posible == TRUE){
@@ -96,50 +94,28 @@ pisados <- sample(length(adjlist_temp),1)
       pisados <- c(pisados, next_step)
       end <- nrow(available.nodes(adjlist_temp)) # si llega a 0 terminamos
       posible <- is.conex(adjlist_temp,next_step)
-      print(end)
-      print(posible)
-      print(pisados)
+      #print(end)
+      #print(posible)
+      #print(pisados)
    }
 
   if (end == 0) {
     break
+    
   }
 next
- }
+}
+    print(pisados)
  return(pisados)
+
   }    
 }
-is.conex(simple_graph,1)
-
-gg <- camino_euleriano(simple_graph)
-gg <- camino_euleriano(raw2)
-
-print(available.nodes(raw2))
-raw2[[origen]]
-
-aa <- c(1,1,2,3,4,5,5)
-b <- 5
-aa <- aa[-match(b,aa)]
 
 
-origen <- raw2[[pisados[length(pisados)]]]
-# PRUEBAS
-# 
-# print_rec(raw2[[1]])
-# rm(pisados)
-# alcanzados = 0
-# alcanzados <- c(alcanzados,raw2[[1]])[-1]
-# alcanzados_acumulado = alcanzados
-# 
-# pisados = vector()
-# while (length(alcanzados) >=1) {
-#   alcanzados <-  c(alcanzados, raw2[[alcanzados[[1]]]])
-#   alcanzados_acumulado <-  c(alcanzados_acumulado, raw2[[alcanzados[[1]]]] )
-#   pisados <- c(pisados,alcanzados[1])
-#   alcanzados <- alcanzados[-1]
-#   alcanzados <- alcanzados[!alcanzados %in% pisados]
-# }
+# GUARDO RESULTADO DE LA FUNCION
 
 
-sample(c(2,10),1)
-sample(as.vector(10),1)
+ejemplo_simple <- camino_euleriano(simple_graph)
+ejemplo_extenso <- camino_euleriano(raw2)
+
+
