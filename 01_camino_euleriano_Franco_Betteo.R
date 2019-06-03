@@ -8,9 +8,14 @@
 simple_graph <- list( c(2,3), c(1,3), c(1,2))
 
 #### O DESDE IGRAPH Y LLEVANDOLO AL FORMATO NECESARIO ( SOLO PARA GENERAR GRAFOS RAPIDAMENTE)
-
+# install.packages("purrr")
+# install.packages("dplyr")
+# install.packages("magrittr")
+# install.packages("igraph")
 library(igraph)
-library(tidyverse)
+library(purrr)
+library(dplyr)
+library(magrittr)
 # Genero Grafo ( no me genera mas de 10 nodos)
 raw <- sample_k_regular(no.of.nodes = 10, k = 4, directed = FALSE, multiple = TRUE) 
 raw <-  igraph::simplify(raw, remove.multiple = FALSE, remove.loops = TRUE)
@@ -105,6 +110,7 @@ camino_euleriano <- function(adjlist){
       }
       next
     }
+    print("Un camino propuesto es:")
     print(pisados)
     return(pisados)
     
