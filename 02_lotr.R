@@ -37,6 +37,7 @@ plot(g,
 # Trials following analysis
 
 V(g)$size <-  strength(g) # buscar sobre esto
+# Summing up the edge weights of the adjacent edges for each vertex.
 par(mar=c(0,0,0,0)); plot(g)
 
 V(g)$size <- log(strength(g)) * 4 + 3
@@ -73,4 +74,34 @@ igraph::get.shortest.paths(g_less, from = 20, weights = g_less$weight) # ??
 
 pg <- page_rank(g, directed = FALSE, weights = NULL)
 
-pg[1]
+pg1 <- pg[[1]]
+rownames
+stre <- strength(g)
+
+tac <- cbind.data.frame(name = names(pg[[1]]), pg = pg[[1]])
+
+stre2 <- cbind.data.frame(name = names(stre),strength = stre)
+
+pg_stre <- left_join(tac, stre2, by = "name") %>%
+  arrange(desc(pg))
+
+# Shortest Path inverting wieght
+
+g_inv <- g
+E(g_inv)$weight <- 1/E(g_inv)$weight            
+
+sh_pat <- shortest_paths(g_inv, from = "sfax")
+
+plot(g_inv)
+
+betweenness(g_inv, v = V(g_inv), directed = FALSE)
+
+# lo meesmo pero con un grafo reducido
+g_inv_less <- g_less
+E(g_inv_less)$weight <- 1/E(g_inv_less)$weight            
+
+sh_pat <- shortest_paths(g_inv_less, from = "sfax")
+
+plot(g_inv_less)
+
+betweenness(g_inv_less, v = V(g_inv_less), directed = FALSE)
