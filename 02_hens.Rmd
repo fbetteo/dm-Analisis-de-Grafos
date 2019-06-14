@@ -1,0 +1,84 @@
+---
+title: "Análisis de Grafos: Dominancia entre un grupo de gallinas"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+El grafo corresponde a un conjunto de gallinas observadas en 1946. Cada nodo es una gallina y las aristas corresponden a la dominancia física de una sobre otra. Es por lo tanto un grafo direccionado.
+Los vértices llevan como nombre números del 1 al 32.
+
+Cargo librerías y Dataset.
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(igraph)
+rm(list = ls())
+hens <- read.csv("./data/moreno_hens/out.moreno_hens_hens", sep = "", header = FALSE) %>%
+  rename(source = V1, target = V2)
+
+g <- graph_from_data_frame(hens,directed = TRUE)
+
+```
+
+Graficamos rapidamente
+```{r}
+par(mar=c(0,0,0,0))
+plot(g)
+```
+
+Para resaltar aspectos del grafo vamos a asignarle un tamaño a cada vértice de acuerdo a la cantidad de aristas de salida y graficamos de nuevo. Es decir qué tan dominante es.
+Además probamos con el layout force-directed para ver si hay alguna separación en grupos.
+```{r}
+# Force Directed con Size de Salida
+V(g)$size <-  strength(g, mode = "out") 
+par(mar=c(0,0,0,0))
+plot(g, layout=layout_with_fr, main="Force-directed con Size")  
+```
+Vemos que a medida que aumenta el índice del vértice el tamaño se reduce. Los primeros nodos son los más dominantes y esto disminuye paulatinamente.
+El grafo sigue teniendo una forma compacta y no parecen destacarse comunidades.
+
+Probamos invirtiendo el tamaño de los nodos, agrandando los que reciben más aristas, los que son dominados fisicamente por más nodos. 
+
+```{r}
+V(g)$size <-  strength(g, mode = "in") 
+par(mar=c(0,0,0,0))
+plot(g, layout=layout_with_fr, main="Force-directed")  
+
+```
+
+Vemos que la imagen es casi la opuesta, y no solo los primeros nodos son los que a más dominan si no que son poco dominados. Y los últimos son muy dominados y casi no dominan a nadie.
+
+
+### PageRank
+Implementamos PageRank desde Igraph para ver la conectividad de los nodos. Dada la dinámica que vimos en los gráficos puede ser interesante comparar con la cantidad de aristas receptoras de cada nodo.
+
+```{r}
+pg <- page_rank(g, directed = TRUE, weights = NULL)
+
+# Comparativo entre Pangerank y cantidad de nodos de entrada.
+stre <- strength(g, mode = "in")
+
+tac <- cbind.data.frame(name = names(pg[[1]]), pg = pg[[1]])
+
+stre2 <- cbind.data.frame(name = names(stre),strength = stre)
+
+pg_stre <- left_join(tac, stre2, by = "name") %>%
+  arrange(desc(pg))
+
+```
+
+  
+&nbsp;
+&nbsp;
+
+Vemos que la relación entre pagerank y nodos mayormente receptores es bastante directa. Lo que debe estar sucediendo es que sin importar de que nodo se empiece uno puede terminar siempre en los últimos nodos ya que la conexiones parecen ir siempre hacia ellos. Igualmente esta relación no es lineal y vemos cierta alteración en el orden.
+
+```{r}
+knitr::kable(pg_stre)
+```
+
+
