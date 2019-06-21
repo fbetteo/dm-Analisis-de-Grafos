@@ -64,7 +64,7 @@ stre <- strength(g, mode = "in")
 
 tac <- cbind.data.frame(name = names(pg[[1]]), pg = pg[[1]])
 
-stre2 <- cbind.data.frame(name = names(stre),strength = stre)
+stre2 <- cbind.data.frame(name = names(stre), entrantes = stre)
 
 pg_stre <- left_join(tac, stre2, by = "name") %>%
   arrange(desc(pg))
